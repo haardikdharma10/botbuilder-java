@@ -52,6 +52,43 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class TeamsActivityHandlerTests {
     @Test
+    public void TestConversationUpdateBotTeamsMemberAdded() {
+        String baseUri = "https://test.coffee";
+        ConnectorClient connectorClient = getConnectorClient(
+            "http://localhost/",
+            MicrosoftAppCredentials.empty()
+        );
+
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setMembersAdded(new ArrayList<ChannelAccount>() {
+                    {
+                        add(new ChannelAccount("botid-1"));
+                    }
+                });
+                setRecipient(new ChannelAccount("botid-1"));
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamMemberAdded");
+                        setTeam(new TeamInfo("team-id"));
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new SimpleAdapter(), activity);
+        turnContext.getTurnState().add(BotFrameworkAdapter.CONNECTOR_CLIENT_KEY, connectorClient);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsMembersAdded", bot.record.get(1));
+    }
+
+    @Test
     public void TestConversationUpdateTeamsMemberAdded() {
         String baseUri = "https://test.coffee";
         ConnectorClient connectorClient = getConnectorClient(
@@ -100,7 +137,7 @@ public class TeamsActivityHandlerTests {
             {
                 setMembersAdded(new ArrayList<ChannelAccount>() {
                     {
-                        add(new ChannelAccount("id-3"));
+                        add(new ChannelAccount("id-1"));
                     }
                 });
                 setRecipient(new ChannelAccount("b"));
@@ -141,6 +178,8 @@ public class TeamsActivityHandlerTests {
                                 setGivenName("given-1");
                                 setSurname("surname-1");
                                 setUserPrincipalName("t@microsoft.com");
+                                setTenantId("testTenantId");
+                                setUserRole("guest");
                             }
                         });
                     }
@@ -276,6 +315,29 @@ public class TeamsActivityHandlerTests {
     }
 
     @Test
+    public void TestConversationUpdateTeamsChannelRestored() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("channelRestored");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsChannelRestored", bot.record.get(1));
+    }
+
+    @Test
     public void TestConversationUpdateTeamsTeamRenamed() {
         Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
             {
@@ -296,6 +358,121 @@ public class TeamsActivityHandlerTests {
         Assert.assertEquals(2, bot.record.size());
         Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
         Assert.assertEquals("onTeamsTeamRenamed", bot.record.get(1));
+    }
+
+    @Test
+    public void TestConversationUpdateTeamsTeamArchived() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamArchived");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsTeamArchived", bot.record.get(1));
+    }
+
+    @Test
+    public void TestConversationUpdateTeamsTeamDeleted() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamDeleted");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsTeamDeleted", bot.record.get(1));
+    }
+
+    @Test
+    public void TestConversationUpdateTeamsTeamHardDeleted() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamHardDeleted");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsTeamHardDeleted", bot.record.get(1));
+    }
+
+    @Test
+    public void TestConversationUpdateTeamsTeamRestored() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamRestored");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsTeamRestored", bot.record.get(1));
+    }
+
+    @Test
+    public void TestConversationUpdateTeamsTeamUnarchived() {
+        Activity activity = new Activity(ActivityTypes.CONVERSATION_UPDATE) {
+            {
+                setChannelData(new TeamsChannelData() {
+                    {
+                        setEventType("teamUnarchived");
+                    }
+                });
+                setChannelId(Channels.MSTEAMS);
+            }
+        };
+
+        TurnContext turnContext = new TurnContextImpl(new NotImplementedAdapter(), activity);
+
+        TestActivityHandler bot = new TestActivityHandler();
+        bot.onTurn(turnContext).join();
+
+        Assert.assertEquals(2, bot.record.size());
+        Assert.assertEquals("onConversationUpdateActivity", bot.record.get(0));
+        Assert.assertEquals("onTeamsTeamUnarchived", bot.record.get(1));
     }
 
     @Test
@@ -1124,6 +1301,16 @@ public class TeamsActivityHandlerTests {
         }
 
         @Override
+        protected CompletableFuture<Void> onTeamsChannelRestored(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsChannelRestored");
+            return super.onTeamsChannelRestored(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
         protected CompletableFuture<Void> onTeamsTeamRenamed(
             ChannelInfo channelInfo,
             TeamInfo teamInfo,
@@ -1131,6 +1318,56 @@ public class TeamsActivityHandlerTests {
         ) {
             record.add("onTeamsTeamRenamed");
             return super.onTeamsTeamRenamed(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
+        protected CompletableFuture<Void> onTeamsTeamArchived(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsTeamArchived");
+            return super.onTeamsTeamArchived(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
+        protected CompletableFuture<Void> onTeamsTeamDeleted(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsTeamDeleted");
+            return super.onTeamsTeamDeleted(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
+        protected CompletableFuture<Void> onTeamsTeamHardDeleted(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsTeamHardDeleted");
+            return super.onTeamsTeamHardDeleted(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
+        protected CompletableFuture<Void> onTeamsTeamRestored(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsTeamRestored");
+            return super.onTeamsTeamRestored(channelInfo, teamInfo, turnContext);
+        }
+
+        @Override
+        protected CompletableFuture<Void> onTeamsTeamUnarchived(
+            ChannelInfo channelInfo,
+            TeamInfo teamInfo,
+            TurnContext turnContext
+        ) {
+            record.add("onTeamsTeamUnarchived");
+            return super.onTeamsTeamUnarchived(channelInfo, teamInfo, turnContext);
         }
     }
 
@@ -1270,6 +1507,72 @@ public class TeamsActivityHandlerTests {
                     });
                 }
             })
+        );
+
+        // getConversationMember (Team)
+        Mockito.when(mockConversations.getConversationMember("id-1", "team-id")).thenReturn(
+            CompletableFuture.completedFuture(
+                new ChannelAccount() {
+                    {
+                        setId("id-1");
+                        setName("name-1");
+                        setProperties(
+                            "objectId",
+                            JsonNodeFactory.instance.textNode("objectId-1")
+                        );
+                        setProperties(
+                            "givenName",
+                            JsonNodeFactory.instance.textNode("givenName-1")
+                        );
+                        setProperties(
+                            "surname",
+                            JsonNodeFactory.instance.textNode("surname-1")
+                        );
+                        setProperties("email", JsonNodeFactory.instance.textNode("email-1"));
+                        setProperties(
+                            "userPrincipalName",
+                            JsonNodeFactory.instance.textNode("userPrincipalName-1")
+                        );
+                        setProperties(
+                            "tenantId",
+                            JsonNodeFactory.instance.textNode("tenantId-1")
+                        );
+                    }
+                }
+            )
+        );
+
+        // getConversationMember (Group chat)
+        Mockito.when(mockConversations.getConversationMember("id-1", "conversation-id")).thenReturn(
+            CompletableFuture.completedFuture(
+                new ChannelAccount() {
+                    {
+                        setId("id-1");
+                        setName("name-1");
+                        setProperties(
+                            "objectId",
+                            JsonNodeFactory.instance.textNode("objectId-1")
+                        );
+                        setProperties(
+                            "givenName",
+                            JsonNodeFactory.instance.textNode("givenName-1")
+                        );
+                        setProperties(
+                            "surname",
+                            JsonNodeFactory.instance.textNode("surname-1")
+                        );
+                        setProperties("email", JsonNodeFactory.instance.textNode("email-1"));
+                        setProperties(
+                            "userPrincipalName",
+                            JsonNodeFactory.instance.textNode("userPrincipalName-1")
+                        );
+                        setProperties(
+                            "tenantId",
+                            JsonNodeFactory.instance.textNode("tenantId-1")
+                        );
+                    }
+                }
+            )
         );
 
         ConnectorClient mockConnectorClient = Mockito.mock(ConnectorClient.class);

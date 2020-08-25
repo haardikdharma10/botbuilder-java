@@ -41,6 +41,13 @@ public class CardAction {
     private String text;
 
     /**
+     * Alternate image text to be used in place of the `image` field.
+     */
+    @JsonProperty(value = "imageAltText")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String imageAltText;
+
+    /**
      * (Optional) text to display in the chat feed if the button is clicked.
      */
     @JsonProperty(value = "displayText")
@@ -64,7 +71,7 @@ public class CardAction {
 
     /**
      * Perform a deep copy of a CardAction.
-     * 
+     *
      * @param cardAction The CardAction to clone.
      * @return A cloned copy of the CardAction.
      */
@@ -82,6 +89,7 @@ public class CardAction {
                 setType(cardAction.getType());
                 setText(cardAction.getText());
                 setChannelData(cardAction.getChannelData());
+                setImageAltText(cardAction.getImageAltText());
             }
         };
     }
@@ -95,7 +103,7 @@ public class CardAction {
 
     /**
      * Simplify creation of CardActions with string values.
-     * 
+     *
      * @param input The value for both Title and Value.
      */
     public CardAction(String input) {
@@ -176,6 +184,24 @@ public class CardAction {
     }
 
     /**
+     * Get the image alternate text value.
+     *
+     * @return the text value
+     */
+    public String getImageAltText() {
+        return this.imageAltText;
+    }
+
+    /**
+     * Set the image alternate text value.
+     *
+     * @param withImageAltText the text value to set
+     */
+    public void setImageAltText(String withImageAltText) {
+        this.imageAltText = withImageAltText;
+    }
+
+    /**
      * Get the displayText value.
      *
      * @return the displayText value
@@ -213,7 +239,7 @@ public class CardAction {
 
     /**
      * Gets the channelData value.
-     * 
+     *
      * @return ChannelData as a JsonNode.
      */
     public Object getChannelData() {
